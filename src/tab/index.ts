@@ -1,4 +1,4 @@
-const omelette = require('omelette');
+const omelette = require('@serverless-devs/omelette ');
 import core from '../utils/core';
 import { getYamlPath } from '../utils';
 import path from 'path';
@@ -20,6 +20,7 @@ function getComponentPath(componentName: string) {
 (async () => {
   const spath = await getYamlPath();
   const completion = omelette('s');
+  completion.setupShellInitFile();
   let tmp = {};
   if (spath) {
     const yamlData = await core.getYamlContent(spath);
