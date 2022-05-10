@@ -1,4 +1,4 @@
-const omelette = require('@serverless-devs/omelette ');
+const omelette = require('@serverless-devs/omelette');
 import core from '../utils/core';
 import { getYamlPath } from '../utils';
 import path from 'path';
