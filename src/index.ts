@@ -31,6 +31,9 @@ const { join, includes } = lodash;
     .command('edit', `${emoji('🔌')} Installed component information.`)
     .version(getVersion(), '-v, --version', 'Output the version number.')
     .addHelpCommand(false);
+
+  // tab 提示
+  require('./tab');
   // 将参数argv存储到env
   process.env['serverless_devs_temp_argv'] = JSON.stringify(process.argv.slice(2));
   // TODO: 目前core和s并不依赖temp_params环境变量，只是提供给组件用，后续组件移除temp_params后，此行代码可以删掉

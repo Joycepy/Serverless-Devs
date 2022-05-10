@@ -202,3 +202,10 @@ export async function specifyServiceHelp(filePath: string) {
     );
   }
 }
+
+export async function getYamlPath(filePath?: string) {
+  try {
+    const spath = await core.getTemplatePath(filePath);
+    return await core.transforYamlPath(spath);
+  } catch (error) {}
+}
