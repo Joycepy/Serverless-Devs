@@ -27,7 +27,7 @@ function getComponentPath(componentName: string) {
     const serviceList = keys(get(yamlData, 'services'));
     if (serviceList.length > 1) {
       const tmp = [];
-      const data = [];
+      const allData = {};
       for (const key of serviceList) {
         const component = get(yamlData, ['services', key, 'component']);
         const filePath = getComponentPath(component);
@@ -36,26 +36,45 @@ function getComponentPath(componentName: string) {
           const publishContent = await core.getYamlContent(publishPath);
           const commands = publishContent.Commands;
           if (commands) {
+            const data = [];
             for (const o in commands) {
               const ele = commands[o];
               if (isPlainObject(ele)) {
                 for (const i in ele) {
-                  tmp.push(i);
                   data.push(i);
                 }
               } else {
-                tmp.push(o);
                 data.push(o);
               }
             }
+            allData[key] = data;
           }
         }
         tmp.push({ name: key, description: `Specify service to operate.` });
       }
       if (includes(serviceList, env.prev)) {
-        return tabtab.log(data);
+        return tabtab.log(allData[env.prev]);
       }
-      tabtab.log(tmp);
+      let minArr = [];
+      for (const key in allData) {
+        const ele = allData[key];
+        if (ele.length > minArr.length) {
+          minArr = ele;
+        }
+      }
+      for (const item of minArr) {
+        let bol = true;
+        for (const key in allData) {
+          const ele = allData[key];
+          if (!includes(ele, item)) {
+            bol = false;
+          }
+        }
+        bol && tmp.push(item);
+      }
+      if (env.prev === 's') {
+        tabtab.log(tmp);
+      }
     } else {
       const component = get(yamlData, ['services', serviceList[0], 'component']);
       const filePath = getComponentPath(component);
@@ -75,7 +94,9 @@ function getComponentPath(componentName: string) {
               tmp.push(key === 'deploy' ? { name: key, description: ele } : key);
             }
           }
-          tabtab.log(tmp);
+          if (env.prev === 's') {
+            tabtab.log(tmp);
+          }
         }
       }
     }
@@ -89,6 +110,8 @@ function getComponentPath(componentName: string) {
     if (env.prev === 'set') {
       return tabtab.log(['registry', 'analysis', 'workspace']);
     }
-    tabtab.log(['config', 'init', 'cli', 'verify', 'set', 'clean', 'component', 'edit']);
+    if (env.prev === 's') {
+      tabtab.log(['config', 'init', 'cli', 'verify', 'set', 'clean', 'component', 'edit']);
+    }
   }
 })();
