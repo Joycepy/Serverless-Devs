@@ -5,7 +5,7 @@ import path from 'path';
 
 const { lodash, fse } = core;
 
-const { get, keys, isPlainObject } = lodash;
+const { get, keys, isPlainObject, includes } = lodash;
 
 function getComponentPath(componentName: string) {
   let filePath = path.join(core.getRootHome(), 'components', 'devsapp.cn', componentName);
@@ -27,6 +27,7 @@ function getComponentPath(componentName: string) {
     const serviceList = keys(get(yamlData, 'services'));
     if (serviceList.length > 1) {
       const tmp = [];
+      const data = [];
       for (const key of serviceList) {
         const component = get(yamlData, ['services', key, 'component']);
         const filePath = getComponentPath(component);
@@ -40,14 +41,19 @@ function getComponentPath(componentName: string) {
               if (isPlainObject(ele)) {
                 for (const i in ele) {
                   tmp.push(i);
+                  data.push(i);
                 }
               } else {
                 tmp.push(o);
+                data.push(o);
               }
             }
           }
         }
         tmp.push({ name: key, description: `Specify service to operate.` });
+      }
+      if (includes(serviceList, env.prev)) {
+        return tabtab.log(data);
       }
       tabtab.log(tmp);
     } else {
