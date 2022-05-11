@@ -13,8 +13,10 @@ const { lodash } = core;
 const { join, includes } = lodash;
 
 (async () => {
-  // tab 提示
-  require('./tab');
+  const args = require('minimist')(process.argv.slice(2));
+  if (args._[0] === 'completion') {
+    return require('./tab');
+  }
   process.env['CLI_VERSION'] = pkg.version;
   registerCommandChecker(program);
   const system_command = program

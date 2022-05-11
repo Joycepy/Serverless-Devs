@@ -1,4 +1,4 @@
-const omelette = require('@serverless-devs/omelette');
+import tabtab from 'tabtab';
 import core from '../utils/core';
 import { getYamlPath } from '../utils';
 import path from 'path';
@@ -18,18 +18,18 @@ function getComponentPath(componentName: string) {
 }
 
 (async () => {
+  const env = tabtab.parseEnv(process.env);
+  if (!env.complete) return;
+
   const spath = await getYamlPath();
-  const completion = omelette('s');
-  completion.setupShellInitFile();
-  let tmp = {};
   if (spath) {
     const yamlData = await core.getYamlContent(spath);
     const serviceList = keys(get(yamlData, 'services'));
     if (serviceList.length > 1) {
+      const tmp = [];
       for (const key of serviceList) {
         const component = get(yamlData, ['services', key, 'component']);
         const filePath = getComponentPath(component);
-        const data = [];
         if (filePath) {
           const publishPath = path.join(filePath, 'publish.yaml');
           const publishContent = await core.getYamlContent(publishPath);
@@ -39,18 +39,17 @@ function getComponentPath(componentName: string) {
               const ele = commands[o];
               if (isPlainObject(ele)) {
                 for (const i in ele) {
-                  tmp[i] = [];
-                  data.push(i);
+                  tmp.push(i);
                 }
               } else {
-                tmp[o] = [];
-                data.push(o);
+                tmp.push(o);
               }
             }
           }
         }
-        tmp[key] = data;
+        tmp.push({ name: key, description: `Specify service to operate.` });
       }
+      tabtab.log(tmp);
     } else {
       const component = get(yamlData, ['services', serviceList[0], 'component']);
       const filePath = getComponentPath(component);
@@ -59,30 +58,31 @@ function getComponentPath(componentName: string) {
         const publishContent = await core.getYamlContent(publishPath);
         const commands = publishContent.Commands;
         if (commands) {
+          const tmp = [];
           for (const key in commands) {
             const ele = commands[key];
             if (isPlainObject(ele)) {
               for (const i in ele) {
-                tmp[i] = [];
+                tmp.push(i === 'deploy' ? { name: i, description: ele[i] } : i);
               }
             } else {
-              tmp[key] = [];
+              tmp.push(key === 'deploy' ? { name: key, description: ele } : key);
             }
           }
+          tabtab.log(tmp);
         }
       }
     }
   } else {
-    tmp = {
-      config: ['add', 'get', 'delete'],
-      init: [],
-      cli: ['fc'],
-      verify: [],
-      set: ['registry', 'analysis', 'workspace'],
-      clean: [],
-      component: [],
-      edit: [],
-    };
+    if (env.prev === 'config') {
+      return tabtab.log(['add', 'get', 'delete']);
+    }
+    if (env.prev === 'cli') {
+      return tabtab.log(['fc']);
+    }
+    if (env.prev === 'set') {
+      return tabtab.log(['registry', 'analysis', 'workspace']);
+    }
+    tabtab.log(['config', 'init', 'cli', 'verify', 'set', 'clean', 'component', 'edit']);
   }
-  completion.tree(tmp).init();
 })();
